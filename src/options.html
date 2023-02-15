@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 460px;
+      padding: 16px;
+      font-size: 14px;
+    }
+
+    input {
+      padding: 4px;
+      font-size: 1em;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 5px;
+      align-items: center;
+    }
+
+    #saveBtn {
+      margin: 18px 0 10px;
+      padding: 4px 10px;
+    }
+
+    #status {
+      margin-left: 20px;
+      font-weight: 600;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="label">Logseq API 地址：</div>
+    <input type="text" name="apiUrl" id="apiUrl">
+    <div class="label">授权令牌：</div>
+    <input type="text" name="token" id="token">
+  </div>
+  <div>
+    <button id="saveBtn">保存</button>
+    <span id="status"></span>
+  </div>
+  <script src="options.js" type="module"></script>
+</body>
+
+</html>

@@ -7,7 +7,8 @@
     "16": "icons/16.png",
     "32": "icons/32.png",
     "48": "icons/48.png",
-    "128": "icons/128.png"
+    "64": "icons/64.png",
+    "128": "icons/200.png"
   },
   "action": {
     "default_popup": "src/popup.html",
@@ -16,8 +17,13 @@
       "32": "icons/32.png"
     }
   },
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": false
+  },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ]
 }
