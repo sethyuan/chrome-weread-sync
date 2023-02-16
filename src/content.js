@@ -27,7 +27,8 @@ async function getData(vid, booksSyncKey, notesSyncKey) {
       },
     }
   } catch (err) {
-    return { code: 400, data: err }
+    console.error(err)
+    return { code: 400, err }
   }
 }
 

@@ -28,18 +28,19 @@ async function sync(tab) {
     args: [vid.value, booksSyncKey, notesSyncKey],
   })
   if (res?.code !== 200) {
-    return errorMsg(msgEl, res.code)
+    return errorMsg(msgEl, res.code, res.err)
   }
-  await chrome.storage.sync.set({
-    booksSyncKey: res.data.booksSyncKey,
-    notesSyncKey: res.data.notesSyncKey,
-  })
 
   msgEl.textContent = "与Logseq同步中……"
   const syncBooksRes = await syncBooks(res.data)
   if (syncBooksRes?.code !== 200) {
     return errorMsg(msgEl, syncBooksRes.code)
   }
+
+  await chrome.storage.sync.set({
+    booksSyncKey: res.data.booksSyncKey,
+    notesSyncKey: res.data.notesSyncKey,
+  })
 
   msgEl.textContent = "完成"
   msgEl.classList.add("success")
@@ -58,16 +59,15 @@ async function syncBooks(data) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      method: "logseq.App.invokeExternalPlugin",
-      args: ["logseq-weread-sync.models.receiveSyncData", data],
+      method: "logseq.App.invokeExternalPluginCmd",
+      args: ["logseq-weread-sync", "models", "receiveSyncData", [data]],
     }),
   })
   if (!res.ok) return { code: res.code }
-  console.log(await res.json())
   return { code: 200 }
 }
 
-function errorMsg(msgEl, code) {
+function errorMsg(msgEl, code, err) {
   msgEl.classList.add("failure")
   switch (code) {
     case 401:
@@ -75,6 +75,7 @@ function errorMsg(msgEl, code) {
       break
     default:
       msgEl.textContent = "同步失败"
+      console.error(code, err)
       break
   }
 }
