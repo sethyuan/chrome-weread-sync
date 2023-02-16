@@ -34,8 +34,7 @@ jobs:
           yarn
           yarn build
           mkdir ${{ env.PLUGIN_NAME }}
-          cp README.md package.json icon.png ${{ env.PLUGIN_NAME }}
-          mv dist ${{ env.PLUGIN_NAME }}
+          cp -r icons src LICENSE README.md manifest.json ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
           ls
           echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
