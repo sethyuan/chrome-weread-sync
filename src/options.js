@@ -1,6 +1,6 @@
 async function main() {
   const config = await chrome.storage.local.get({
-    apiUrl: "http://127.0.0.1:12315",
+    apiUrl: "http://localhost:12315",
     token: "",
   })
   document.getElementById("apiUrl").value = config.apiUrl

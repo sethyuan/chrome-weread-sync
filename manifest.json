@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Logseq微信读书同步助手",
+  "name": "微信读书LS同步助手",
   "version": "0.1.0",
-  "description": "配合Logseq WeRead Sync插件使用，同步微信读书数据。",
+  "description": "配合 Logseq 插件 WeRead Sync 使用，同步微信读书数据。",
   "icons": {
     "16": "icons/16.png",
     "32": "icons/32.png",
     "48": "icons/48.png",
     "64": "icons/64.png",
-    "128": "icons/200.png"
+    "128": "icons/128.png"
   },
   "action": {
     "default_popup": "src/popup.html",
@@ -21,9 +21,26 @@
     "page": "src/options.html",
     "open_in_tab": false
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://weread.qq.com/",
+        "*://i.weread.qq.com/"
+      ],
+      "js": [
+        "src/content.js"
+      ]
+    }
+  ],
   "permissions": [
     "activeTab",
-    "scripting",
+    "cookies",
     "storage"
+  ],
+  "host_permissions": [
+    "*://weread.qq.com/",
+    "*://i.weread.qq.com/",
+    "http://localhost:*/",
+    "http://127.0.0.1:*/"
   ]
 }

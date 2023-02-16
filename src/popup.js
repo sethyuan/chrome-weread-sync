@@ -13,69 +13,62 @@ async function main(...args) {
 }
 
 async function sync(tab) {
-  const msgEl = document.getElementById("msg")
+  const msgEl = document.getElementsByClassName("msg")[0]
+  msgEl.classList.remove("success", "failure")
 
-  msgEl.textContent = "获取书籍数据……"
-  const [{ result: booksRes }] = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: getBooks,
+  const vid = await chrome.cookies.get({ name: "wr_vid", url: tab.url })
+  const { booksSyncKey, notesSyncKey } = await chrome.storage.sync.get({
+    booksSyncKey: "",
+    notesSyncKey: "",
   })
-  if (booksRes.code !== 200) {
-    return errorMsg(booksRes.code)
+
+  msgEl.textContent = "获取数据……"
+  const res = await chrome.tabs.sendMessage(tab.id, {
+    op: "getData",
+    args: [vid.value, booksSyncKey, notesSyncKey],
+  })
+  if (res?.code !== 200) {
+    return errorMsg(msgEl, res.code)
   }
+  await chrome.storage.sync.set({
+    booksSyncKey: res.data.booksSyncKey,
+    notesSyncKey: res.data.notesSyncKey,
+  })
 
-  msgEl.textContent = "向Logseq导入书籍……"
-  const syncBooksRes = await syncBooks(booksRes.data)
-  if (syncBooksRes.code !== 200) {
-    return errorMsg(syncBooksRes.code)
-  }
-
-  if (syncBooksRes.data.toSync.length > 0) {
-    msgEl.textContent = "获取笔记数据……"
-    const [{ result: detailsRes }] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: getDetailsAndNotes,
-      args: [syncBooksRes.data.toSync],
-    })
-    if (detailsRes.code !== 200) {
-      return errorMsg(detailsRes.code)
-    }
-
-    msgEl.textContent = "向Logseq导入笔记……"
-    const syncDetailsRes = await syncDetails(detailsRes.data)
-    if (syncDetailsRes.code !== 200) {
-      return errorMsg(syncDetailsRes.code)
-    }
+  msgEl.textContent = "与Logseq同步中……"
+  const syncBooksRes = await syncBooks(res.data)
+  if (syncBooksRes?.code !== 200) {
+    return errorMsg(msgEl, syncBooksRes.code)
   }
 
   msgEl.textContent = "完成"
+  msgEl.classList.add("success")
 }
 
-async function getBooks() {
-  // TODO
-}
-
-async function getDetailsAndNotes(bookIds) {
-  // TODO
-}
-
-async function syncBooks(books) {
-  // TODO
-  const res = await fetch("")
+async function syncBooks(data) {
+  const { apiUrl, token } = await chrome.storage.local.get({
+    apiUrl: "http://localhost:12315",
+    token: "",
+  })
+  const res = await fetch(`${apiUrl}/api`, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      method: "logseq.App.invokeExternalPlugin",
+      args: ["logseq-weread-sync.models.receiveSyncData", data],
+    }),
+  })
   if (!res.ok) return { code: res.code }
-  const json = await res.json()
-  return { code: 200, data: json }
-}
-
-async function syncDetails(details) {
-  // TODO
-  const res = await fetch("")
-  if (!res.ok) return { code: res.code }
-  const json = await res.json()
-  return { code: 200, data: json }
+  console.log(await res.json())
+  return { code: 200 }
 }
 
 function errorMsg(msgEl, code) {
+  msgEl.classList.add("failure")
   switch (code) {
     case 401:
       msgEl.textContent = "请先登录微信读书"
