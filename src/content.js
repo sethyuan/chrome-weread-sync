@@ -1,29 +1,29 @@
-async function getData(vid, booksSyncKey, notesSyncKey) {
+async function getData(vid, booksSyncKey, bookmarksSyncKey, reviewsSyncKey) {
   try {
-    const [shelfChanges, bookmarkChanges] = await Promise.all([
+    const [shelfChanges, bookmarkChanges, reviewChanges] = await Promise.all([
       getBooks(vid, booksSyncKey),
-      getNotes(notesSyncKey),
+      getBookmarks(bookmarksSyncKey),
+      getReviews(reviewsSyncKey),
     ])
-    const bookIds = new Set(
-      shelfChanges.books
-        .concat(bookmarkChanges.books)
-        .map(({ bookId }) => bookId),
-    )
-    const changedBooks = await Promise.all(
-      Array.from(bookIds).map((id) => getBookData(id, bookmarkChanges)),
-    )
-    const removedBooks = shelfChanges.removed.map((book) => ({
-      id: book.bookId,
-      title: book.title,
-      version: book.version,
-    }))
     return {
       code: 200,
       data: {
-        removedBooks,
-        changedBooks,
-        booksSyncKey: shelfChanges.synckey,
-        notesSyncKey: bookmarkChanges.synckey,
+        books: {
+          updated: await Promise.all(shelfChanges.books.map(getBookInfo)),
+          removed: shelfChanges.removed,
+          syncKey: shelfChanges.synckey,
+        },
+        bookmarks: {
+          updated: bookmarkChanges.updated,
+          removed: bookmarkChanges.removed,
+          chapters: bookmarkChanges.chapters,
+          syncKey: bookmarkChanges.synckey,
+        },
+        reviews: {
+          updated: reviewChanges.reviews,
+          removed: reviewChanges.removed,
+          syncKey: reviewChanges.synckey,
+        },
       },
     }
   } catch (err) {
@@ -38,25 +38,20 @@ async function getBooks(vid, syncKey) {
   )
 }
 
-async function getNotes(syncKey) {
+async function getBookmarks(syncKey) {
   return await getFetch(
     `https://i.weread.qq.com/book/bookmarklist?synckey=${syncKey}`,
   )
 }
 
-async function getBookData(id, bookmarkChanges) {
-  const bookInfo = await getBookInfo(id)
-  bookInfo.removedNotes = bookmarkChanges.removed.filter(
-    ({ bookId }) => bookId === id,
+async function getReviews(syncKey) {
+  return await getFetch(
+    `https://i.weread.qq.com/review/list?listType=11&listMode=0&mine=1&synckey=${syncKey}`,
   )
-  bookInfo.changedNotes = bookmarkChanges.updated.filter(
-    ({ bookId }) => bookId === id,
-  )
-  return bookInfo
 }
 
-async function getBookInfo(id) {
-  return await getFetch(`https://i.weread.qq.com/book/info?bookId=${id}`)
+async function getBookInfo({ bookId }) {
+  return await getFetch(`https://i.weread.qq.com/book/info?bookId=${bookId}`)
 }
 
 async function getFetch(url) {

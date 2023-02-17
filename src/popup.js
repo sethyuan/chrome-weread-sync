@@ -17,15 +17,17 @@ async function sync(tab) {
   msgEl.classList.remove("success", "failure")
 
   const vid = await chrome.cookies.get({ name: "wr_vid", url: tab.url })
-  const { booksSyncKey, notesSyncKey } = await chrome.storage.sync.get({
-    booksSyncKey: "",
-    notesSyncKey: "",
-  })
+  const { booksSyncKey, bookmarksSyncKey, reviewsSyncKey } =
+    await chrome.storage.sync.get({
+      booksSyncKey: "",
+      bookmarksSyncKey: "",
+      reviewsSyncKey: "",
+    })
 
   msgEl.textContent = "获取数据……"
   const res = await chrome.tabs.sendMessage(tab.id, {
     op: "getData",
-    args: [vid.value, booksSyncKey, notesSyncKey],
+    args: [vid.value, booksSyncKey, bookmarksSyncKey, reviewsSyncKey],
   })
   if (res?.code !== 200) {
     return errorMsg(msgEl, res.code, res.err)
@@ -38,8 +40,9 @@ async function sync(tab) {
   }
 
   await chrome.storage.sync.set({
-    booksSyncKey: res.data.booksSyncKey,
-    notesSyncKey: res.data.notesSyncKey,
+    booksSyncKey: res.data.books.syncKey,
+    bookmarksSyncKey: res.data.bookmarks.syncKey,
+    reviewsSyncKey: res.data.reviews.syncKey,
   })
 
   msgEl.textContent = "完成"
@@ -64,6 +67,8 @@ async function syncBooks(data) {
     }),
   })
   if (!res.ok) return { code: res.code }
+  const ok = await res.json()
+  if (!ok) return { code: 400 }
   return { code: 200 }
 }
 
