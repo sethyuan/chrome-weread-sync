@@ -23,41 +23,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "14.x"
+      - uses: actions/checkout@v3
 
-      - name: Build
-        id: build
-        run: |
-          mkdir ${{ env.PLUGIN_NAME }}
-          cp -r icons src LICENSE README.md manifest.json ${{ env.PLUGIN_NAME }}
-          cd ${{ env.PLUGIN_NAME }}
-          zip -r ../${{ env.PLUGIN_NAME }}.zip *
-          cd ..
-          ls
-          echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.ref }}
+      - name: Zip Release
+        # You may pin to the exact commit or the version.
+        # uses: TheDoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
+        uses: TheDoctor0/zip-release@0.7.1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
+          # Filename for archive
+          filename: "${{ env.PLUGIN_NAME }}.zip"
+          exclusions: ".github/* .* package.json yarn.lock"
 
-      - name: Upload zip file
-        id: upload_zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Release
+        uses: ncipollo/release-action@v1.12.0
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
-          asset_content_type: application/zip
+          artifacts: "${{ env.PLUGIN_NAME }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
