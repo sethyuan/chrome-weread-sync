@@ -3,7 +3,7 @@ const SITE_URLS = ["https://i.weread.qq.com", "https://weread.qq.com"]
 async function main(...args) {
   const [tab] = await chrome.tabs.query({
     active: true,
-    lastFocusedWindow: true,
+    currentWindow: true,
   })
   if (SITE_URLS.some((url) => tab.url.startsWith(url))) {
     await sync(tab)
