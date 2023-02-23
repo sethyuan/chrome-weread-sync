@@ -16,18 +16,21 @@ async function sync(tab) {
   const msgEl = document.getElementsByClassName("msg")[0]
   msgEl.classList.remove("success", "failure")
 
-  const vid = await chrome.cookies.get({ name: "wr_vid", url: tab.url })
-  const { booksSyncKey, bookmarksSyncKey, reviewsSyncKey } =
-    await chrome.storage.sync.get({
-      booksSyncKey: "",
-      bookmarksSyncKey: "",
-      reviewsSyncKey: "",
-    })
+  const vid = (await chrome.cookies.get({ name: "wr_vid", url: tab.url })).value
+  const {
+    [`${vid}_booksSyncKey`]: booksSyncKey,
+    [`${vid}_bookmarksSyncKey`]: bookmarksSyncKey,
+    [`${vid}_reviewsSyncKey`]: reviewsSyncKey,
+  } = await chrome.storage.sync.get({
+    [`${vid}_booksSyncKey`]: "",
+    [`${vid}_bookmarksSyncKey`]: "",
+    [`${vid}_reviewsSyncKey`]: "",
+  })
 
   msgEl.textContent = "获取数据……"
   const res = await chrome.tabs.sendMessage(tab.id, {
     op: "getData",
-    args: [vid.value, booksSyncKey, bookmarksSyncKey, reviewsSyncKey],
+    args: [vid, booksSyncKey, bookmarksSyncKey, reviewsSyncKey],
   })
   if (res?.code !== 200) {
     return errorMsg(msgEl, res.code, res.err)
@@ -40,9 +43,9 @@ async function sync(tab) {
   }
 
   await chrome.storage.sync.set({
-    booksSyncKey: res.data.books.syncKey,
-    bookmarksSyncKey: res.data.bookmarks.syncKey,
-    reviewsSyncKey: res.data.reviews.syncKey,
+    [`${vid}_booksSyncKey`]: res.data.books.syncKey,
+    [`${vid}_bookmarksSyncKey`]: res.data.bookmarks.syncKey,
+    [`${vid}_reviewsSyncKey`]: res.data.reviews.syncKey,
   })
 
   msgEl.textContent = "完成"
