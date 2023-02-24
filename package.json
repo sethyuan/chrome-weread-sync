@@ -1,6 +1,6 @@
 {
   "name": "chrome-weread-sync",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {},
   "devDependencies": {
     "chrome-types": "^0.1.171"

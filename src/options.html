@@ -37,8 +37,20 @@
     }
 
     #status {
+      flex: 1 1 auto;
       margin-left: 20px;
       font-weight: 600;
+    }
+
+    #clearKey {
+      font-size: 12px;
+      color: #1486e9;
+      cursor: pointer;
+    }
+
+    .op-bar {
+      display: flex;
+      align-items: center;
     }
 
   </style>
@@ -51,9 +63,10 @@
     <div class="label">授权令牌：</div>
     <input type="text" name="token" id="token">
   </div>
-  <div>
+  <div class="op-bar">
     <button id="saveBtn">保存</button>
     <span id="status"></span>
+    <a id="clearKey">清除增量同步key</a>
   </div>
   <script src="options.js" type="module"></script>
 </body>

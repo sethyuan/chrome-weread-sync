@@ -5,7 +5,7 @@ async function main(...args) {
     active: true,
     currentWindow: true,
   })
-  if (SITE_URLS.some((url) => tab.url.startsWith(url))) {
+  if (tab?.url && SITE_URLS.some((url) => tab.url.startsWith(url))) {
     await sync(tab)
   } else {
     await openWeReadTab()

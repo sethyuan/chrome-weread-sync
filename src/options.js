@@ -8,6 +8,9 @@ async function main() {
 
   const saveBtn = document.getElementById("saveBtn")
   saveBtn.addEventListener("click", save)
+
+  const clearBtn = document.getElementById("clearKey")
+  clearBtn.addEventListener("click", clearKeys)
 }
 
 async function save() {
@@ -15,9 +18,17 @@ async function save() {
     apiUrl: document.getElementById("apiUrl").value,
     token: document.getElementById("token").value,
   })
+  showMessage("保存成功")
+}
 
+async function clearKeys() {
+  await chrome.storage.sync.clear()
+  showMessage("已清除")
+}
+
+function showMessage(message) {
   const statusEl = document.getElementById("status")
-  statusEl.textContent = "保存成功"
+  statusEl.textContent = message
   setTimeout(() => {
     statusEl.textContent = ""
   }, 750)
