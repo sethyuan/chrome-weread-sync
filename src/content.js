@@ -1,15 +1,28 @@
-async function getData(vid, booksSyncKey, bookmarksSyncKey, reviewsSyncKey) {
+async function getData(
+  vid,
+  booksSyncKey,
+  bookmarksSyncKey,
+  reviewsSyncKey,
+  noSyncBookList,
+) {
   try {
-    const [shelfChanges, bookmarkChanges, reviewChanges] = await Promise.all([
-      getBooks(vid, booksSyncKey),
-      getBookmarks(bookmarksSyncKey),
-      getReviews(reviewsSyncKey),
-    ])
+    const [shelfChanges, bookmarkChanges, reviewChanges, booklistData] =
+      await Promise.all([
+        getBooks(vid, booksSyncKey),
+        getBookmarks(bookmarksSyncKey),
+        getReviews(reviewsSyncKey),
+        getBooklists(),
+      ])
+    const booksToSync = getBooksToSync(
+      shelfChanges.books,
+      booklistData.booklists,
+      noSyncBookList,
+    )
     return {
       code: 200,
       data: {
         books: {
-          updated: await batchGetBookInfo(shelfChanges.books),
+          updated: await batchGetBookInfo(booksToSync),
           removed: shelfChanges.removed,
           syncKey: shelfChanges.synckey,
         },
@@ -80,10 +93,30 @@ async function getBookInfo({ bookId }) {
   }
 }
 
+async function getBooklists() {
+  return await getFetch(
+    `https://i.weread.qq.com/booklists?type=4&synckey=&count=100&countPerBooklist=-1`,
+  )
+}
+
+// async function getSingleBooklist(id) {
+//   return await getFetch(
+//     `https://i.weread.qq.com/booklist/single?booklistId=${id}&synckey=`,
+//   )
+// }
+
 async function getFetch(url) {
   const res = await fetch(url, { credentials: "include" })
   if (!res.ok) throw res.code
   return await res.json()
+}
+
+function getBooksToSync(books, booklists, noSyncBookList) {
+  if (!noSyncBookList) return books
+  const booklist = booklists.find((list) => list.name === noSyncBookList)
+  if (booklist == null) return books
+  const noSyncBookIds = new Set(booklist.books.map(({ bookId }) => bookId))
+  return books.filter(({ bookId }) => !noSyncBookIds.has(bookId))
 }
 
 function simplifyBookmarks(bookmarks, chapters) {

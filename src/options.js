@@ -1,10 +1,14 @@
 async function main() {
-  const config = await chrome.storage.local.get({
+  const { apiUrl, token } = await chrome.storage.local.get({
     apiUrl: "http://localhost:12315",
     token: "",
   })
-  document.getElementById("apiUrl").value = config.apiUrl
-  document.getElementById("token").value = config.token
+  const { noSyncBookList } = await chrome.storage.sync.get({
+    noSyncBookList: "",
+  })
+  document.getElementById("apiUrl").value = apiUrl
+  document.getElementById("token").value = token
+  document.getElementById("noSync").value = noSyncBookList
 
   const saveBtn = document.getElementById("saveBtn")
   saveBtn.addEventListener("click", save)
@@ -18,11 +22,19 @@ async function save() {
     apiUrl: document.getElementById("apiUrl").value,
     token: document.getElementById("token").value,
   })
+  await chrome.storage.sync.set({
+    noSyncBookList: document.getElementById("noSync").value,
+  })
   showMessage("保存成功")
 }
 
 async function clearKeys() {
+  // Clear all sync keys.
+  const settings = await chrome.storage.sync.get({
+    noSyncBookList: "",
+  })
   await chrome.storage.sync.clear()
+  await chrome.storage.sync.set(settings)
   showMessage("已清除")
 }
 

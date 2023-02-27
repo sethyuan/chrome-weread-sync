@@ -24,16 +24,24 @@ async function sync(tab) {
       [`${vid}_booksSyncKey`]: booksSyncKey,
       [`${vid}_bookmarksSyncKey`]: bookmarksSyncKey,
       [`${vid}_reviewsSyncKey`]: reviewsSyncKey,
+      noSyncBookList,
     } = await chrome.storage.sync.get({
       [`${vid}_booksSyncKey`]: "",
       [`${vid}_bookmarksSyncKey`]: "",
       [`${vid}_reviewsSyncKey`]: "",
+      noSyncBookList: "",
     })
 
     msgEl.textContent = "获取数据……"
     const res = await chrome.tabs.sendMessage(tab.id, {
       op: "getData",
-      args: [vid, booksSyncKey, bookmarksSyncKey, reviewsSyncKey],
+      args: [
+        vid,
+        booksSyncKey,
+        bookmarksSyncKey,
+        reviewsSyncKey,
+        noSyncBookList,
+      ],
     })
     if (res?.code !== 200) {
       return errorMsg(msgEl, res.code, res.err)
