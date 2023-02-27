@@ -14,13 +14,15 @@ async function getData(vid, booksSyncKey, bookmarksSyncKey, reviewsSyncKey) {
           syncKey: shelfChanges.synckey,
         },
         bookmarks: {
-          updated: bookmarkChanges.updated,
+          updated: simplifyBookmarks(
+            bookmarkChanges.updated,
+            bookmarkChanges.chapters,
+          ),
           removed: bookmarkChanges.removed,
-          chapters: bookmarkChanges.chapters,
           syncKey: bookmarkChanges.synckey,
         },
         reviews: {
-          updated: reviewChanges.reviews,
+          updated: simplifyReviews(reviewChanges.reviews),
           removed: reviewChanges.removed,
           syncKey: reviewChanges.synckey,
         },
@@ -59,13 +61,62 @@ async function batchGetBookInfo(books) {
 }
 
 async function getBookInfo({ bookId }) {
-  return await getFetch(`https://i.weread.qq.com/book/info?bookId=${bookId}`)
+  const book = await getFetch(
+    `https://i.weread.qq.com/book/info?bookId=${bookId}`,
+  )
+  return {
+    title: book.title,
+    categories: book.categories?.map(({ title }) => ({ title })),
+    author: book.author,
+    translator: book.translator,
+    publisher: book.publisher,
+    publishTime: book.publishTime,
+    isbn: book.isbn,
+    finishReading: book.finishReading,
+    bookId: book.bookId,
+    version: book.version,
+    cover: book.cover,
+    intro: book.intro,
+  }
 }
 
 async function getFetch(url) {
   const res = await fetch(url, { credentials: "include" })
   if (!res.ok) throw res.code
   return await res.json()
+}
+
+function simplifyBookmarks(bookmarks, chapters) {
+  return bookmarks.map((b) => ({
+    bookId: b.bookId,
+    chapterUid: b.chapterUid,
+    bookmarkId: b.bookmarkId,
+    type: b.type,
+    range: b.range,
+    markText: b.markText,
+    chapterName:
+      b.chapterName ??
+      b.chapterTitle ??
+      chapters.find(
+        (c) => c.bookId === b.bookId && c.chapterUid === b.chapterUid,
+      )?.title,
+    createTime: b.createTime,
+  }))
+}
+
+function simplifyReviews(reviews) {
+  return reviews
+    .filter(({ review }) => review.chapterUid != null)
+    .map(({ review }) => ({
+      bookId: review.bookId,
+      chapterUid: review.chapterUid,
+      reviewId: review.reviewId,
+      range: review.range,
+      content: review.content,
+      abstract: review.abstract,
+      chapterName: review.chapterName ?? review.chapterTitle,
+      createTime: review.createTime,
+    }))
 }
 
 function splitArray(arr, n) {
