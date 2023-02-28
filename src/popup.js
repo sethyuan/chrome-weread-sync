@@ -103,7 +103,7 @@ async function syncRemoved(data, apiUrl, token) {
 
 async function syncBooks(data, apiUrl, token) {
   const batches = splitArray(data.books.updated, BATCH)
-  let res
+  let res = { code: 200 }
   for (const batch of batches) {
     data = {
       books: {
@@ -127,7 +127,7 @@ async function syncBooks(data, apiUrl, token) {
 
 async function syncBookmarks(data, apiUrl, token) {
   const batches = splitArray(data.bookmarks.updated, BATCH)
-  let res
+  let res = { code: 200 }
   for (const batch of batches) {
     data = {
       books: {
@@ -151,7 +151,7 @@ async function syncBookmarks(data, apiUrl, token) {
 
 async function syncReviews(data, apiUrl, token) {
   const batches = splitArray(data.reviews.updated, BATCH)
-  let res
+  let res = { code: 200 }
   for (const batch of batches) {
     data = {
       books: {
@@ -186,7 +186,7 @@ async function syncCall(data, apiUrl, token) {
       args: ["logseq-weread-sync", "models", "receiveSyncData", [data]],
     }),
   })
-  if (!res.ok) return { code: res.code }
+  if (!res.ok) return { code: res.status }
   const ok = await res.json()
   if (!ok) return { code: 400 }
   return { code: 200 }
